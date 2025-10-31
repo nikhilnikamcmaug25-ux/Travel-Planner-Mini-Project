@@ -1,13 +1,13 @@
-const express = require("express");
-
+import express from 'express';
+import {connectDb} from './src/configs/DbConfig.js';
 
 const app = express();
-const port = 3000;
+
 
 app.get("/", (req, res) => {
   res.send("Hello, Express is running!");
 });
 
-app.listen(port, () => {
-  console.log(`Server started on http://localhost:${port}`);
+app.listen(3000, () => {
+  connectDb();
 });
