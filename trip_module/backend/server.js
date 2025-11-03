@@ -2,9 +2,11 @@ import express from "express";
 import { connectiondb } from "./configs/db.js";
 import tripRoutes from "./routes/tripRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
-
+import cors from "cors";
 
 const app = express();
+app.use(cors());
+
 app.use(express.json());
 
 // for tetsing the route
@@ -15,7 +17,7 @@ app.get("/", (req, res) => {
 // All OG's --> 
 
 //for user operations
-app.use("/api/trip", tripRoutes);
+app.use("/api/trips", tripRoutes);
 //for itinerary operations
 app.use("/api/itinerary", itineraryRoutes)
 

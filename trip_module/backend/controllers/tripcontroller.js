@@ -28,7 +28,7 @@ export async function viewTrips(req, res) {
         if(rows.length === 0){
             res.status(404).json({message:"No trips found for provided user !"});
         }
-        res.status(200).json({message:"Trips Fetched successfully !" , trips : rows});
+        res.status(200).json(rows); 
     }catch(error){
         console.log("Error fetching trips : ",error);
         res.status(500).json({message:"Server Error", error: error.message});
