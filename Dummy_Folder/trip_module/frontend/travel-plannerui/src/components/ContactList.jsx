@@ -20,10 +20,10 @@ export function ContactList() {
     const fetchContacts = async () => {
         try {
             const response = await getAllContact();
-            console.log("Fetched Contacts:", response.data);
+            console.log(response.data);
             setContacts(response.data);
         } catch (error) {
-            console.error("Error fetching contacts:", error);
+            console.log(error);
             toast.error("Failed to load contact messages.", { theme: "colored" });
         }
     }
@@ -36,7 +36,7 @@ export function ContactList() {
     // Function to close the confirmation modal
     const hideConfirmation = () => {
         setShowConfirmation(false);
-        setSelectedContact(null); // Clear selected item when closing
+       
     }
 
     const showSuccessToast = () => {

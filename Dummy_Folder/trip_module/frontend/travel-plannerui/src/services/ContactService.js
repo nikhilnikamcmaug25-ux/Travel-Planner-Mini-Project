@@ -7,9 +7,9 @@ export  async function savecontact(formData){
 
 }
 export  function getAllContact(){
-    return axios.get(CONTACT_API_URL);
+    return axios.put(CONTACT_API_URL);
 }
 
 export function deleteContact(id){
-    return axios.get(`${CONTACT_API_URL}/${id}`);
+    return axios.delete(`${CONTACT_API_URL}/${id}`);
 }
