@@ -1,20 +1,28 @@
-// backend/controllers/tripController.js
+// backend/controllers/TripController.js
 import { getConnection } from "../configs/DbConfig.js";
 
-// ✅ Add new trip
 export async function addTrip(req, res) {
-  const { user_id, destination, start_date, end_date } = req.body;
+  const { user_id, trip_name, destination, start_date, end_date, budget, description } = req.body;
+
+  if (!trip_name || !destination) {
+    return res.status(400).json({ error: "Trip name and destination are required." });
+  }
+
   try {
     const connection = await getConnection();
     await connection.query(
-      `INSERT INTO trips (user_id, destination, start_date, end_date) VALUES (?, ?, ?, ?)`,
-      [user_id, destination, start_date, end_date]
+      `INSERT INTO trips (user_id, trip_name, destination, start_date, end_date, budget, description)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, trip_name, destination, start_date, end_date, budget || 0, description || null]
     );
+
     res.status(201).json({ message: "Trip added successfully" });
   } catch (err) {
+    console.error("Error adding trip:", err);
     res.status(500).json({ error: err.message });
   }
 }
+
 
 // ✅ Get trips for a specific user
 export async function getTrips(req, res) {

@@ -1,6 +1,14 @@
 // frontend/src/pages/UserDashboard.jsx
 import React, { useEffect, useState } from "react";
-import { Container, Button, Form, Table, Alert, Spinner, Collapse } from "react-bootstrap";
+import {
+  Container,
+  Button,
+  Form,
+  Table,
+  Alert,
+  Spinner,
+  Collapse,
+} from "react-bootstrap";
 import {
   addTrip,
   getTrips,
@@ -13,19 +21,32 @@ import {
 
 export default function UserDashboard() {
   const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("user_id"); // make sure login stores this
+  const userId = localStorage.getItem("user_id"); // ensure login stores this
   const role = localStorage.getItem("role");
 
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tripData, setTripData] = useState({ destination: "", start_date: "", end_date: "" });
+  const [tripData, setTripData] = useState({
+  trip_name: "",
+  destination: "",
+  start_date: "",
+  end_date: "",
+  budget: "",
+  description: ""
+});
   const [feedback, setFeedback] = useState("");
   const [status, setStatus] = useState({ type: "", message: "" });
 
-  // itinerary
-  const [itineraryData, setItineraryData] = useState({ activity: "", date: "", time: "" });
+  // itinerary state
+  const [itineraryData, setItineraryData] = useState({
+    activity: "",
+    date: "",
+    time: "",
+  });
   const [openTrip, setOpenTrip] = useState(null);
-  const [itineraries, setItineraries] = useState({});
+  const [itineraries, setItineraries] = useState({}); // { [trip_id]: [items...] }
+
+  // standalone add-itinerary form (optional)
   const [standaloneItinerary, setStandaloneItinerary] = useState({
     trip_id: "",
     activity: "",
@@ -60,7 +81,14 @@ export default function UserDashboard() {
     try {
       await addTrip({ user_id: userId, ...tripData }, token);
       setStatus({ type: "success", message: "Trip added successfully!" });
-      setTripData({ destination: "", start_date: "", end_date: "" });
+      setTripData({
+        trip_name: "",
+        destination: "",
+        start_date: "",
+        end_date: "",
+        budget: "",
+        description: "",
+      });
       await loadTrips();
     } catch (err) {
       setStatus({ type: "error", message: err.message || "Failed to add trip" });
@@ -89,6 +117,7 @@ export default function UserDashboard() {
     }
   }
 
+  // Toggle and load itineraries for a trip
   async function toggleItinerary(trip_id) {
     if (openTrip === trip_id) {
       setOpenTrip(null);
@@ -97,16 +126,19 @@ export default function UserDashboard() {
     setOpenTrip(trip_id);
     try {
       const data = await getItineraries(trip_id, token);
+      // ensure we are using the backend's primary key name; prefer itinerary_id
       setItineraries((prev) => ({ ...prev, [trip_id]: data || [] }));
     } catch (err) {
       setStatus({ type: "error", message: err.message || "Failed to load itineraries" });
     }
   }
 
+  // Add itinerary tied to a trip (collapsible per-trip form)
   async function handleAddItinerary(e, trip_id) {
     e.preventDefault();
     try {
-      await addItinerary({ trip_id, ...itineraryData }, token);
+      const payload = { trip_id, ...itineraryData };
+      await addItinerary(payload, token);
       setItineraryData({ activity: "", date: "", time: "" });
       const data = await getItineraries(trip_id, token);
       setItineraries((prev) => ({ ...prev, [trip_id]: data || [] }));
@@ -116,26 +148,37 @@ export default function UserDashboard() {
     }
   }
 
-  async function handleDeleteItinerary(itineraryId, trip_id) {
-    if (!window.confirm("Delete this itinerary item?")) return;
-    try {
-      await deleteItinerary(itineraryId, token);
-      const updated = (itineraries[trip_id] || []).filter((i) => i.id !== itineraryId);
-      setItineraries((prev) => ({ ...prev, [trip_id]: updated }));
-      setStatus({ type: "success", message: "Itinerary deleted!" });
-    } catch (err) {
-      setStatus({ type: "error", message: err.message || "Failed to delete itinerary" });
-    }
-  }
-
+  // Standalone itinerary form (accepts trip_id manually)
   async function handleAddStandaloneItinerary(e) {
     e.preventDefault();
     try {
       await addItinerary(standaloneItinerary, token);
-      setStatus({ type: "success", message: "Itinerary added successfully!" });
       setStandaloneItinerary({ trip_id: "", activity: "", date: "", time: "" });
+      // refresh that trip's itineraries if open
+      const tid = standaloneItinerary.trip_id;
+      if (tid) {
+        const data = await getItineraries(tid, token);
+        setItineraries((prev) => ({ ...prev, [tid]: data || [] }));
+      }
+      setStatus({ type: "success", message: "Itinerary added successfully!" });
     } catch (err) {
       setStatus({ type: "error", message: err.message || "Failed to add itinerary" });
+    }
+  }
+
+  // Delete itinerary item — pass the PK the backend expects (itinerary_id)
+  async function handleDeleteItinerary(itineraryId, trip_id) {
+    if (!window.confirm("Delete this itinerary item?")) return;
+    try {
+      await deleteItinerary(itineraryId, token);
+      const updated = (itineraries[trip_id] || []).filter((i) => {
+        // handle both possible keys from backend
+        return (i.itinerary_id || i.id) !== itineraryId;
+      });
+      setItineraries((prev) => ({ ...prev, [trip_id]: updated }));
+      setStatus({ type: "success", message: "Itinerary deleted!" });
+    } catch (err) {
+      setStatus({ type: "error", message: err.message || "Failed to delete itinerary" });
     }
   }
 
@@ -144,7 +187,9 @@ export default function UserDashboard() {
       <h1 className="fw-bold text-center mb-4">🧳 User Dashboard</h1>
 
       {status.message && (
-        <Alert variant={status.type === "error" ? "danger" : "success"}>{status.message}</Alert>
+        <Alert variant={status.type === "error" ? "danger" : "success"}>
+          {status.message}
+        </Alert>
       )}
 
       {loading ? (
@@ -155,42 +200,72 @@ export default function UserDashboard() {
         <>
           {/* ===== ADD TRIP ===== */}
           <h4>Add a New Trip</h4>
-          <Form onSubmit={handleAddTrip} className="mb-4">
-            <Form.Group className="mb-3">
-              <Form.Label>Destination</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter destination"
-                value={tripData.destination}
-                onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={tripData.start_date}
-                onChange={(e) => setTripData({ ...tripData, start_date: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={tripData.end_date}
-                onChange={(e) => setTripData({ ...tripData, end_date: e.target.value })}
-                required
-              />
-            </Form.Group>
-            <Button type="submit" variant="primary">
-              Add Trip
-            </Button>
-          </Form>
+            <Form onSubmit={handleAddTrip} className="mb-4">
+              <Form.Group className="mb-3">
+                <Form.Label>Trip Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter trip name"
+                  value={tripData.trip_name}
+                  onChange={(e) => setTripData({ ...tripData, trip_name: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Destination</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter destination"
+                  value={tripData.destination}
+                  onChange={(e) => setTripData({ ...tripData, destination: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Start Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={tripData.start_date}
+                  onChange={(e) => setTripData({ ...tripData, start_date: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>End Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={tripData.end_date}
+                  onChange={(e) => setTripData({ ...tripData, end_date: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Budget</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter budget"
+                  value={tripData.budget}
+                  onChange={(e) => setTripData({ ...tripData, budget: e.target.value })}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  placeholder="Describe your trip"
+                  value={tripData.description}
+                  onChange={(e) => setTripData({ ...tripData, description: e.target.value })}
+                />
+              </Form.Group>
+              <Button type="submit" variant="primary">
+                Add Trip
+              </Button>
+            </Form>
+
 
           {/* ===== ADD ITINERARY (standalone) ===== */}
-          <h4 className="mt-5">Add Itinerary for a Trip</h4>
+          <h4 className="mt-5">Add Itinerary for a Trip (standalone)</h4>
           <Form onSubmit={handleAddStandaloneItinerary} className="mb-4">
             <Form.Group className="mb-3">
               <Form.Label>Trip ID</Form.Label>
@@ -204,6 +279,7 @@ export default function UserDashboard() {
                 required
               />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Activity</Form.Label>
               <Form.Control
@@ -216,6 +292,7 @@ export default function UserDashboard() {
                 required
               />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Date</Form.Label>
               <Form.Control
@@ -227,6 +304,7 @@ export default function UserDashboard() {
                 required
               />
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Time</Form.Label>
               <Form.Control
@@ -239,6 +317,7 @@ export default function UserDashboard() {
                 required
               />
             </Form.Group>
+
             <Button type="submit" variant="primary">
               Add Itinerary
             </Button>
@@ -250,16 +329,19 @@ export default function UserDashboard() {
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Trip Name</th>
                 <th>Destination</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Budget</th>
+                <th>Description</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {trips.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center text-muted">
+                  <td colSpan="8" className="text-center text-muted">
                     No trips found.
                   </td>
                 </tr>
@@ -268,9 +350,14 @@ export default function UserDashboard() {
                   <React.Fragment key={t.trip_id}>
                     <tr>
                       <td>{t.trip_id}</td>
+                      <td>{t.trip_name}</td>
                       <td>{t.destination}</td>
                       <td>{t.start_date}</td>
                       <td>{t.end_date}</td>
+                      <td>{t.budget}</td>
+                      <td style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {t.description}
+                      </td>
                       <td>
                         <Button variant="outline-primary" size="sm" onClick={() => toggleItinerary(t.trip_id)}>
                           📋 Itinerary
@@ -283,10 +370,12 @@ export default function UserDashboard() {
 
                     {/* COLLAPSIBLE ITINERARY SECTION */}
                     <tr>
-                      <td colSpan="5" style={{ padding: 0, border: "none" }}>
+                      <td colSpan="8" style={{ padding: 0, border: "none" }}>
                         <Collapse in={openTrip === t.trip_id}>
                           <div className="p-3 bg-light border-top">
-                            <h6>Itinerary for {t.destination}</h6>
+                            <h6>Itinerary for {t.trip_name || t.destination}</h6>
+
+                            {/* per-trip itinerary form */}
                             <Form onSubmit={(e) => handleAddItinerary(e, t.trip_id)} className="mb-3">
                               <div className="d-flex flex-wrap gap-2">
                                 <Form.Control
@@ -320,6 +409,7 @@ export default function UserDashboard() {
                               </div>
                             </Form>
 
+                            {/* itinerary table */}
                             <Table bordered size="sm">
                               <thead>
                                 <tr>
@@ -338,23 +428,27 @@ export default function UserDashboard() {
                                     </td>
                                   </tr>
                                 ) : (
-                                  itineraries[t.trip_id].map((i) => (
-                                    <tr key={i.id}>
-                                      <td>{i.id}</td>
-                                      <td>{i.activity}</td>
-                                      <td>{i.date}</td>
-                                      <td>{i.time}</td>
-                                      <td>
-                                        <Button
-                                          variant="outline-danger"
-                                          size="sm"
-                                          onClick={() => handleDeleteItinerary(i.id, t.trip_id)}
-                                        >
-                                          Delete
-                                        </Button>
-                                      </td>
-                                    </tr>
-                                  ))
+                                  itineraries[t.trip_id].map((i) => {
+                                    // support both possible key names returned by backend
+                                    const id = i.itinerary_id ?? i.id;
+                                    return (
+                                      <tr key={id}>
+                                        <td>{id}</td>
+                                        <td>{i.activity}</td>
+                                        <td>{i.date}</td>
+                                        <td>{i.time}</td>
+                                        <td>
+                                          <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleDeleteItinerary(id, t.trip_id)}
+                                          >
+                                            Delete
+                                          </Button>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })
                                 )}
                               </tbody>
                             </Table>
