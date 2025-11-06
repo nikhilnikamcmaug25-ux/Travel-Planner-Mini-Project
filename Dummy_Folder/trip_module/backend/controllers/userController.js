@@ -42,8 +42,13 @@ export async function loginUser(req, res) {
       { expiresIn: "2h" }
     );
 
-    // Include role in response for frontend redirect logic
-    res.json({ message: "Login successful", token, role: user[0].role });
+    // ✅ Include role & user_id for frontend
+    res.json({
+      message: "Login successful",
+      token,
+      role: user[0].role,
+      user_id: user[0].id,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

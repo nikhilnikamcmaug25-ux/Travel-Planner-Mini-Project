@@ -1,12 +1,14 @@
+// src/App.jsx
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import Contact from "./pages/Contact.jsx";
-import AuthModal from "./components/AuthModal"; // 👈 import modal
+import Contact from "./pages/Contact";
+import AuthModal from "./components/AuthModal";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
 
 export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -16,16 +18,15 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Navbar openAuthModal={openAuthModal} /> {/* 👈 pass function */}
+      <Navbar openAuthModal={openAuthModal} />
       <Routes>
-        <Route path="/" element={<Home openAuthModal={openAuthModal} />} /> {/* 👈 pass to Hero */}
+        <Route path="/" element={<Home openAuthModal={openAuthModal} />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/user" element={<UserDashboard />} />
       </Routes>
       <Footer />
-
-      {/* 👇 place modal globally */}
       <AuthModal show={showAuthModal} handleClose={closeAuthModal} />
     </BrowserRouter>
   );

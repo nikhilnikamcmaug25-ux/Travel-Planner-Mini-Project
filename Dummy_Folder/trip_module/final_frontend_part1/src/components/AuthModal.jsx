@@ -1,3 +1,4 @@
+// frontend/src/components/AuthModal.jsx
 import React, { useState } from "react";
 import { Modal, Button, Tab, Nav, Form, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +20,6 @@ export default function AuthModal({ show, handleClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Updated Login Function
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -29,9 +29,10 @@ export default function AuthModal({ show, handleClose }) {
         password: formData.password,
       });
 
-      // ✅ Save token & role
+      // ✅ Save token, role, and user_id
       localStorage.setItem("token", res.token);
       localStorage.setItem("role", res.role || "user");
+      localStorage.setItem("user_id", res.user_id);
 
       setMessage("✅ Login successful!");
 
@@ -41,7 +42,7 @@ export default function AuthModal({ show, handleClose }) {
         if (res.role === "admin") {
           navigate("/admin"); // Admin goes to dashboard
         } else {
-          navigate("/"); // Others go to homepage
+          navigate("/user"); // User goes to UserDashboard.jsx
         }
       }, 1000);
     } catch (err) {
