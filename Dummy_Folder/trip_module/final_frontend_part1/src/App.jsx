@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Contact from "./pages/Contact.jsx";
 import AuthModal from "./components/AuthModal"; // 👈 import modal
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/" element={<Home openAuthModal={openAuthModal} />} /> {/* 👈 pass to Hero */}
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
       <Footer />
 

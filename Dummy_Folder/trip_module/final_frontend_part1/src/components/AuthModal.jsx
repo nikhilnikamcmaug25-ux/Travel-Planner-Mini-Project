@@ -1,6 +1,6 @@
-
 import React, { useState } from "react";
 import { Modal, Button, Tab, Nav, Form, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import { loginUser, registerUser } from "../api";
 
 export default function AuthModal({ show, handleClose }) {
@@ -13,11 +13,13 @@ export default function AuthModal({ show, handleClose }) {
     role: "user",
   });
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ✅ Updated Login Function
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -26,11 +28,24 @@ export default function AuthModal({ show, handleClose }) {
         email: formData.email,
         password: formData.password,
       });
+
+      // ✅ Save token & role
       localStorage.setItem("token", res.token);
+      localStorage.setItem("role", res.role || "user");
+
       setMessage("✅ Login successful!");
-      setTimeout(() => handleClose(), 1200);
+
+      // ✅ Redirect logic
+      setTimeout(() => {
+        handleClose();
+        if (res.role === "admin") {
+          navigate("/admin"); // Admin goes to dashboard
+        } else {
+          navigate("/"); // Others go to homepage
+        }
+      }, 1000);
     } catch (err) {
-      setMessage("❌ " + err.message);
+      setMessage("❌ " + (err.message || "Login failed"));
     }
   };
 
@@ -47,17 +62,12 @@ export default function AuthModal({ show, handleClose }) {
       setMessage("✅ Registration successful! Please login.");
       setActiveTab("login");
     } catch (err) {
-      setMessage("❌ " + err.message);
+      setMessage("❌ " + (err.message || "Registration failed"));
     }
   };
 
   return (
-    <Modal
-      show={show}
-      onHide={handleClose}
-      centered
-      style={{ zIndex: 2000 }}
-    >
+    <Modal show={show} onHide={handleClose} centered style={{ zIndex: 2000 }}>
       <Modal.Header closeButton>
         <Modal.Title>{activeTab === "login" ? "Login" : "Sign Up"}</Modal.Title>
       </Modal.Header>

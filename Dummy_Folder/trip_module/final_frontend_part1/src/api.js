@@ -49,3 +49,13 @@ export function loginUser(credentials) {
 export function sendContactMessage(contactData) {
   return apiRequest("/contact", "POST", contactData);
 }
+
+// ADMIN: Get all users
+export function getAllUsers(token) {
+  return apiRequest("/users", "GET", null, token);
+}
+
+// ADMIN: Delete user
+export function deleteUser(userId, token) {
+  return apiRequest(`/users/${userId}`, "DELETE", null, token);
+}
