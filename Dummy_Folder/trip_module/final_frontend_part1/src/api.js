@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3000/api";
+/*const API_BASE_URL = "http://localhost:3000/api";
 
 export async function apiRequest(endpoint, method = "GET", data = null, token = null) {
   const headers = { "Content-Type": "application/json" };
@@ -13,4 +13,39 @@ export async function apiRequest(endpoint, method = "GET", data = null, token = 
   const result = await response.json();
   if (!response.ok) throw new Error(result.message || "Request failed");
   return result;
+}
+*/
+
+// src/api.js
+const API_BASE_URL = "http://localhost:3000/api";
+
+// Generic API request
+export async function apiRequest(endpoint, method = "GET", data = null, token = null) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : null,
+  });
+
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.message || "Request failed");
+  return result;
+}
+
+// ✅ Register
+export function registerUser(userData) {
+  return apiRequest("/users/register", "POST", userData);
+}
+
+// ✅ Login
+export function loginUser(credentials) {
+  return apiRequest("/users/login", "POST", credentials);
+}
+
+// ✅ Send contact form
+export function sendContactMessage(contactData) {
+  return apiRequest("/contact", "POST", contactData);
 }

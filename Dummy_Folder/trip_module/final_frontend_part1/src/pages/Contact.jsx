@@ -1,17 +1,42 @@
-import React from "react";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import React, { useState } from "react";
+import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import { FaEnvelope, FaPhoneAlt, FaMapMarkerAlt, FaPaperPlane, FaClock } from "react-icons/fa";
+import { sendContactMessage as submitContactForm } from "../api";
+
 
 const PRIMARY_TEAL = "#1abc9c";
 const SECONDARY_SLATE = "#34495e";
-const LIGHT_GRAY = "#f8f9fa";
 const WARNING_YELLOW = "#ffc107";
 
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [status, setStatus] = useState({ type: "", message: "" });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: "", message: "" });
+
+    try {
+      await submitContactForm(formData);
+      setStatus({ type: "success", message: "✅ Message sent successfully!" });
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      setStatus({ type: "error", message: "❌ " + err.message });
+    }
+  };
+
   return (
     <div className="py-5 bg-white">
       <Container style={{ paddingTop: "70px" }}>
-        {/* Header */}
         <Row className="text-center mb-5">
           <Col>
             <FaPaperPlane size={70} style={{ color: PRIMARY_TEAL }} className="mb-3" />
@@ -24,7 +49,7 @@ export default function Contact() {
           </Col>
         </Row>
 
-        {/* Contact Info Cards */}
+        {/* Contact Info */}
         <Row className="justify-content-center g-4 mb-5">
           <Col md={4}>
             <Card className="text-center border-0 shadow-sm p-4 h-100">
@@ -56,40 +81,66 @@ export default function Contact() {
               <h3 className="fw-bold mb-4 text-center" style={{ color: PRIMARY_TEAL }}>
                 Send Us a Message
               </h3>
-              <Form>
+
+              {status.message && (
+                <Alert variant={status.type === "success" ? "success" : "danger"}>
+                  {status.message}
+                </Alert>
+              )}
+
+              <Form onSubmit={handleSubmit}>
                 <Row className="g-3">
                   <Col md={6}>
-                    <Form.Group controlId="formName">
+                    <Form.Group>
                       <Form.Label className="fw-semibold">Full Name</Form.Label>
-                      <Form.Control type="text" placeholder="Enter your name" required />
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Enter your name"
+                        required
+                      />
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group controlId="formEmail">
+                    <Form.Group>
                       <Form.Label className="fw-semibold">Email</Form.Label>
-                      <Form.Control type="email" placeholder="Enter your email" required />
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Enter your email"
+                        required
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
 
-                <Row className="g-3 mt-1">
-                  <Col md={6}>
-                    <Form.Group controlId="formPhone">
-                      <Form.Label className="fw-semibold">Phone</Form.Label>
-                      <Form.Control type="text" placeholder="Enter your phone number" />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group controlId="formSubject">
-                      <Form.Label className="fw-semibold">Subject</Form.Label>
-                      <Form.Control type="text" placeholder="Subject of your message" />
-                    </Form.Group>
-                  </Col>
-                </Row>
+                <Form.Group className="mt-3">
+                  <Form.Label className="fw-semibold">Subject</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    placeholder="Subject of your message"
+                    required
+                  />
+                </Form.Group>
 
-                <Form.Group controlId="formMessage" className="mt-3">
+                <Form.Group className="mt-3">
                   <Form.Label className="fw-semibold">Message</Form.Label>
-                  <Form.Control as="textarea" rows={5} placeholder="Write your message..." />
+                  <Form.Control
+                    as="textarea"
+                    rows={5}
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Write your message..."
+                    required
+                  />
                 </Form.Group>
 
                 <div className="text-center mt-4">
@@ -112,7 +163,6 @@ export default function Contact() {
           </Col>
         </Row>
 
-        {/* Office Hours Section */}
         <Row className="text-center mt-5">
           <Col>
             <FaClock size={40} style={{ color: WARNING_YELLOW }} className="mb-2" />
