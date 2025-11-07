@@ -23,6 +23,7 @@ export async function registerUser(req, res) {
   }
 }
 
+
 // ===================== LOGIN =====================
 export async function loginUser(req, res) {
   const { email, password } = req.body;
