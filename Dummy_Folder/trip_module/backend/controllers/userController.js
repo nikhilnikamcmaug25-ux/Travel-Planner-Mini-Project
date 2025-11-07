@@ -1,4 +1,4 @@
-// backend/controllers/UserController.js
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getConnection } from "../configs/DbConfig.js";

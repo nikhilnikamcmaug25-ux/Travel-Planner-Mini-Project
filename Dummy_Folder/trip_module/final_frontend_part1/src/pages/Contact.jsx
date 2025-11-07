@@ -3,7 +3,6 @@ import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap"
 import { FaEnvelope, FaPhoneAlt, FaMapMarkerAlt, FaPaperPlane, FaClock } from "react-icons/fa";
 import { sendContactMessage as submitContactForm } from "../api";
 
-
 const PRIMARY_TEAL = "#1abc9c";
 const SECONDARY_SLATE = "#34495e";
 const WARNING_YELLOW = "#ffc107";
@@ -15,15 +14,40 @@ export default function Contact() {
     subject: "",
     message: "",
   });
+  const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: "", message: "" });
 
+  // ✅ Handle change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" }); // clear error on change
   };
 
+  // ✅ Validate form fields
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Full name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = "Please enter a valid email address";
+
+    if (!formData.subject.trim()) newErrors.subject = "Subject is required";
+
+    if (!formData.message.trim()) newErrors.message = "Message is required";
+    else if (formData.message.trim().length < 10)
+      newErrors.message = "Message should be at least 10 characters long";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
+
+    if (!validateForm()) return;
 
     try {
       await submitContactForm(formData);
@@ -35,6 +59,8 @@ export default function Contact() {
   };
 
   return (
+      <div className="contact-page">
+      <div className="contact-card">
     <div className="py-5 bg-white">
       <Container style={{ paddingTop: "70px" }}>
         <Row className="text-center mb-5">
@@ -58,8 +84,8 @@ export default function Contact() {
               <p className="text-muted mb-0">CDAC Kharghar, Mumbai, India</p>
             </Card>
           </Col>
-          <Col md={4}>
-            <Card className="text-center border-0 shadow-sm p-4 h-100">
+          <Col md={4} >
+            <Card className="text-center border-0 shadow-sm p-4 h-100" >
               <FaEnvelope size={40} style={{ color: PRIMARY_TEAL }} className="mb-3" />
               <h5 className="fw-bold" style={{ color: SECONDARY_SLATE }}>Email Us</h5>
               <p className="text-muted mb-0">support@traveleva.com</p>
@@ -88,7 +114,7 @@ export default function Contact() {
                 </Alert>
               )}
 
-              <Form onSubmit={handleSubmit}>
+              <Form noValidate onSubmit={handleSubmit}>
                 <Row className="g-3">
                   <Col md={6}>
                     <Form.Group>
@@ -99,10 +125,12 @@ export default function Contact() {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="Enter your name"
-                        required
+                        isInvalid={!!errors.name}
                       />
+                      <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
+
                   <Col md={6}>
                     <Form.Group>
                       <Form.Label className="fw-semibold">Email</Form.Label>
@@ -112,8 +140,9 @@ export default function Contact() {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="Enter your email"
-                        required
+                        isInvalid={!!errors.email}
                       />
+                      <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                 </Row>
@@ -126,8 +155,9 @@ export default function Contact() {
                     value={formData.subject}
                     onChange={handleChange}
                     placeholder="Subject of your message"
-                    required
+                    isInvalid={!!errors.subject}
                   />
+                  <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="mt-3">
@@ -139,8 +169,9 @@ export default function Contact() {
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Write your message..."
-                    required
+                    isInvalid={!!errors.message}
                   />
+                  <Form.Control.Feedback type="invalid">{errors.message}</Form.Control.Feedback>
                 </Form.Group>
 
                 <div className="text-center mt-4">
@@ -172,6 +203,8 @@ export default function Contact() {
           </Col>
         </Row>
       </Container>
+    </div>
+      </div>
     </div>
   );
 }

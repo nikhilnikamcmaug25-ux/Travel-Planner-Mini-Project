@@ -1,4 +1,4 @@
-// backend/controllers/TripController.js
+
 import { getConnection } from "../configs/DbConfig.js";
 
 export async function addTrip(req, res) {
@@ -24,7 +24,7 @@ export async function addTrip(req, res) {
 }
 
 
-// ✅ Get trips for a specific user
+//  Get trips for a specific user
 export async function getTrips(req, res) {
   try {
     const connection = await getConnection();
@@ -38,7 +38,7 @@ export async function getTrips(req, res) {
   }
 }
 
-// ✅ Get all trips (for admin)
+//  Get all trips (for admin)
 export async function getAllTrips(req, res) {
   try {
     const connection = await getConnection();
@@ -54,7 +54,7 @@ export async function getAllTrips(req, res) {
   }
 }
 
-// ✅ Update trip
+//  Update trip
 export async function updateTrip(req, res) {
   const { trip_id } = req.params;
   const { destination, start_date, end_date } = req.body;
@@ -70,7 +70,7 @@ export async function updateTrip(req, res) {
   }
 }
 
-// ✅ Delete trip
+//  Delete trip
 export async function deleteTrip(req, res) {
   try {
     const connection = await getConnection();
